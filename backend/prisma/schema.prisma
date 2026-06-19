@@ -11,3 +11,111 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+ 
+
+  isOnboarded    Boolean   @default(false)
+  bio            String?   @db.Text
+  wilayaId       Int?
+  wilaya         Wilaya?   @relation(fields: [wilayaId], references: [id])
+  
+  githubUsername String?
+  publicEmail    String?
+  phoneNumber    String?
+
+  skills         DeveloperSkill[]
+  portfolioPosts PortfolioPost[]
+  sessions      Session[]
+  accounts      Account[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+
+model Wilaya {
+  id    Int    @id @default(autoincrement())
+  code  Int    @unique
+  name  String
+  slug  String @unique
+  users User[]
+
+  @@map("wilayas")
+}
+
+model Skill {
+  id    Int              @id @default(autoincrement())
+  name  String           @unique
+  slug  String           @unique
+  users DeveloperSkill[]
+
+  @@map("skills")
+}
+
+model DeveloperSkill {
+  userId  String
+  skillId Int
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill   Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([userId, skillId])
+  @@map("developer_skills")
+}
+
+model PortfolioPost {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String   @db.Text
+  imageUrl    String?  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("portfolio_posts")
+}
