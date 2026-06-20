@@ -5,3 +5,4 @@
 # pnpm is the package manager — these are not needed
 backend/package-lock.json
 frontend/package-lock.json
+node_modules
